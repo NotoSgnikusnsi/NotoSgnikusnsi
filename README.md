@@ -1,4 +1,10 @@
-### Hi there 👋
+### I'm an ordinary person. 👍
+
+## Activity
+![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=NotoSgnikusnsi&theme=2077)
+
+## Language
+<img alt="Top Langs" height="150px" src="https://github-readme-stats.vercel.app/api/top-langs/?username=NotoSgnikusnsi&layout=compact&count_private=true&show_icons=true&theme=tokyonight" />
 
 <!--
 **NotoSgnikusnsi/NotoSgnikusnsi** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.

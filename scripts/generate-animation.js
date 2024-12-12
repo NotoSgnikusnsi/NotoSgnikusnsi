@@ -7,136 +7,85 @@ const graphqlWithAuth = graphql.defaults({
   },
 });
 
-class Boid {
-  constructor(color) {
-    this.position = createVector(random(width), random(height));
-    this.velocity = p5.Vector.random2D(); // 大きさが1のランダムなベクトル
-    this.acceleration = createVector(0, 0);
-
-    this.color = color;
-  }
-
-  // 結合
-  cohesion(boids) {
-    // 1. 結合したい仲間の距離を決める
-    const maxRadius = 100;
-    const minRadius = 50;
-    const sum = createVector(0, 0);
-    let count = 0;
-    // 2. 仲間の合計距離を計算する
-    for (let boid of boids) {
-      const distance = this.position.dist(boid.position);
-      if (distance < maxRadius && distance >= minRadius) {
-        sum.add(boid.position);
-        count++;
-      }
-    }
-    // 3. 仲間の平均位置に向かうベクトルを計算する
-    if (count > 0) {
-      sum.div(count);
-      sum.sub(this.position);
-      sum.setMag(0.1);
-      // 4. 速度を更新する
-      this.acceleration.add(sum);
-    }
-  }
-
-  // 分離
-  separation(boids) {
-    // 1. 分離したい仲間の距離を決める
-    const radius = 50;
-    const sum = createVector(0, 0);
-    let count = 0;
-    // 2. 仲間の合計距離を計算する
-    for (let boid of boids) {
-      const distance = this.position.dist(boid.position);
-      if (distance < radius) {
-        sum.add(boid.position);
-        count++;
-      }
-    }
-    // 3. 仲間から離れるベクトルを計算する
-    sum.div(count);
-    sum.sub(this.position);
-    sum.setMag(0.1);
-    // 4. 速度を更新する
-    this.acceleration.sub(sum);
-  }
-
-  // 整列
-  alignment(boids) {
-    // 1. 整列したい仲間の距離を決める
-    const radius = 100;
-    const sum = createVector(0, 0);
-    let count = 0;
-    // 2. 仲間の合計速度を計算する
-    for (let boid of boids) {
-      const distance = this.position.dist(boid.position);
-      if (distance < radius) {
-        sum.add(boid.velocity);
-        count++;
-      }
-    }
-    // 3. 仲間の平均速度に向かうベクトルを計算する
-    sum.div(count);
-    sum.setMag(0.1);
-    // 4. 速度を更新する
-    this.acceleration.add(sum);
-  }
-
-  // フレームごとの処理
-  update() {
-    // 速度を更新する
-    this.velocity.add(this.acceleration);
-    // 速度の大きさを制限する
-    this.velocity.limit(5);
-    // 位置を更新する
-    this.position.add(this.velocity);
-    // 加速度をリセットする
-    this.acceleration.mult(0);
-
-    // 画面の外に出た場合、反対側から再度入ってくる
-    if (this.position.x > width) {
-      this.position.x = 0;
-    } else if (this.position.x < 0) {
-      this.position.x = width;
-    }
-    if (this.position.y > height) {
-      this.position.y = 0;
-    } else if (this.position.y < 0) {
-      this.position.y = height;
-    }
-  }
-
-  display() {
-    // 三角形を描く
-    stroke(0);
-    fill(this.color);
-    push();
-    translate(this.position.x, this.position.y);
-    rotate(this.velocity.heading() + radians(90));
-    beginShape();
-    vertex(0, -12);
-    vertex(-6, 12);
-    vertex(6, 12);
-    endShape(CLOSE);
-    pop();
+class Bird {
+  constructor(x, y, contributionCount) {
+    this.x = x;
+    this.y = y;
+    this.size = Math.min(10 + contributionCount / 2, 30);
+    this.velocity = {
+      x: Math.random() * 4 - 2,
+      y: Math.random() * 4 - 2
+    };
   }
 
   toSVGPath() {
     const angle = Math.atan2(this.velocity.y, this.velocity.x);
     return `
-      <g transform="translate(${this.position.x} ${this.position.y}) rotate(${angle * 180 / Math.PI})">
+      <g transform="translate(${this.x} ${this.y}) rotate(${angle * 180 / Math.PI})">
         <path 
-          d="M ${-12},0 
-             C ${-9.6},${-3.6} ${-3.6},${-6} 0,0 
-             C ${-3.6},${6} ${-9.6},${3.6} ${-12},0 
+          d="M ${-this.size},0 
+             C ${-this.size * 0.8},${-this.size * 0.3} ${-this.size * 0.3},${-this.size * 0.5} 0,0 
+             C ${-this.size * 0.3},${this.size * 0.5} ${-this.size * 0.8},${this.size * 0.3} ${-this.size},0 
              Z"
-          fill="${this.color}"
-          opacity="${Math.min(0.3 + 12 / 30, 1)}"
+          fill="#40916c"
+          opacity="${Math.min(0.3 + this.size / 30, 1)}"
         />
       </g>
     `;
+  }
+
+  update(birds, width, height) {
+    // Boidsのルール適用
+    const alignment = { x: 0, y: 0 };
+    const cohesion = { x: 0, y: 0 };
+    const separation = { x: 0, y: 0 };
+    let neighborCount = 0;
+
+    birds.forEach(other => {
+      if (other === this) return;
+      const dx = other.x - this.x;
+      const dy = other.y - this.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < 100) {
+        alignment.x += other.velocity.x;
+        alignment.y += other.velocity.y;
+        cohesion.x += other.x;
+        cohesion.y += other.y;
+        if (distance < 50) {
+          separation.x -= dx / distance;
+          separation.y -= dy / distance;
+        }
+        neighborCount++;
+      }
+    });
+
+    if (neighborCount > 0) {
+      this.velocity.x += (alignment.x / neighborCount - this.velocity.x) * 0.05;
+      this.velocity.y += (alignment.y / neighborCount - this.velocity.y) * 0.05;
+      this.velocity.x += (cohesion.x / neighborCount - this.x) * 0.01;
+      this.velocity.y += (cohesion.y / neighborCount - this.y) * 0.01;
+    }
+
+    this.velocity.x += separation.x * 0.05;
+    this.velocity.y += separation.y * 0.05;
+
+    // 速度制限
+    const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+    if (speed > 4) {
+      this.velocity.x = (this.velocity.x / speed) * 4;
+      this.velocity.y = (this.velocity.y / speed) * 4;
+    }
+
+    // 位置更新
+    this.x += this.velocity.x;
+    this.y += this.velocity.y;
+
+    // 画面端での折り返し
+    if (this.x < 0) this.x = width;
+    if (this.x > width) this.x = 0;
+    if (this.y < 0) this.y = height;
+    if (this.y > height) this.y = 0;
   }
 }
 
@@ -168,32 +117,30 @@ async function generateAnimation() {
   const contributions = await getContributions(username);
   const width = 800;
   const height = 400;
-  const boids = [];
-  const boidsColor = color(random(255), random(255), random(255));
-  createCanvas(width, height);
+  const birds = [];
 
   contributions.forEach(count => {
     if (count > 0) {
-      boids.push(new Boid(boidsColor));
+      birds.push(new Bird(
+        Math.random() * width,
+        Math.random() * height,
+        count
+      ));
     }
   });
 
   const frames = 120;
-  const animations = boids.map((boid, index) => {
+  const animations = birds.map((bird, index) => {
     const keyframes = [];
     for (let i = 0; i < frames; i++) {
-      boid.cohesion(boids);
-      boid.separation(boids);
-      boid.alignment(boids);
-      boid.update();
-      boid.display();
-      keyframes.push(`${(i / frames) * 100}% { transform: translate(${boid.position.x}px, ${boid.position.y}px) rotate(${Math.atan2(boid.velocity.y, boid.velocity.x) * 180 / Math.PI}deg); }`);
+      bird.update(birds, width, height);
+      keyframes.push(`${(i / frames) * 100}% { transform: translate(${bird.x}px, ${bird.y}px) rotate(${Math.atan2(bird.velocity.y, bird.velocity.x) * 180 / Math.PI}deg); }`);
     }
     return `
-      #boid-${index} {
-        animation: boid-${index} 20s linear infinite;
+      #bird-${index} {
+        animation: bird-${index} 20s linear infinite;
       }
-      @keyframes boid-${index} {
+      @keyframes bird-${index} {
         ${keyframes.join('\n')}
       }
     `;
@@ -205,9 +152,9 @@ async function generateAnimation() {
         ${animations.join('\n')}
       </style>
       <rect width="100%" height="100%" fill="#1a1b26"/>
-      ${boids.map((boid, index) => `
-        <g id="boid-${index}">
-          ${boid.toSVGPath()}
+      ${birds.map((bird, index) => `
+        <g id="bird-${index}">
+          ${bird.toSVGPath()}
         </g>
       `).join('\n')}
     </svg>

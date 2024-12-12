@@ -10,14 +10,15 @@ const graphqlWithAuth = graphql.defaults({
 
 // Rippleクラスの定義
 class Ripple {
-  constructor(x, y, contributionCount) {
+  constructor(x, y, contributionCount, delay) {
     this.x = x;
     this.y = y;
     this.contributionCount = contributionCount;
     this.maxRadius = 20 + contributionCount * 3; // 波紋の最大半径
     this.opacity = Math.min(0.3 + contributionCount / 100, 1); // 波紋の透明度
-    this.duration = 2 + contributionCount / 5; // アニメーション時間
+    this.duration = 2 + contributionCount / 10; // アニメーション時間
     this.fadeDuration = 5; // 波紋の残留効果
+    this.delay = delay; // アニメーション開始の遅延時間
   }
 
   // RippleインスタンスをSVG要素として表現するメソッド
@@ -37,13 +38,14 @@ class Ripple {
           from="0"
           to="${this.maxRadius}"
           dur="${this.duration}s"
+          begin="${this.delay}s"
           repeatCount="indefinite"
         />
         <animate
           attributeName="opacity"
           from="${this.opacity}"
           to="${this.opacity * 0.2}"
-          begin="${this.duration}s"
+          begin="${this.delay}s"
           dur="${this.fadeDuration}s"
           repeatCount="indefinite"
         />
@@ -98,18 +100,21 @@ async function generateAnimation() {
   const rippleRadius = Math.min(width, height) / 4; // 波紋が発生するエリアの半径
 
   // 貢献度データに基づいてRippleインスタンスを生成
+  let delay = 0;
   const ripples = contributionData.weeks.flatMap((week) =>
     week.contributionDays.filter(day => day.contributionCount > 0)
       .map((day) => {
         const { x, y } = getRandomPosition(centerX, centerY, rippleRadius);
-        return new Ripple(x, y, day.contributionCount);
+        const ripple = new Ripple(x, y, day.contributionCount, delay);
+        delay += 0.5; // 各波紋の表示を0.5秒ずつ遅らせる
+        return ripple;
       })
   );
 
   // RippleインスタンスをSVG要素に変換
   const rippleSVGs = ripples.map(ripple => ripple.toSVG()).join('');
 
-  const resetDuration = ripples.length * 3; // 全波紋が描写される時間
+  const resetDuration = ripples.length * 0.5 + 5; // 全波紋が描写される時間 + 余裕時間
   const svg = `
     <svg 
       viewBox="0 0 ${width} ${height}" 
@@ -130,7 +135,7 @@ async function generateAnimation() {
             from="0" 
             to="1" 
             begin="${resetDuration}s" 
-            dur="2s" 
+            dur="2s"
             repeatCount="indefinite"
           />
         </rect>

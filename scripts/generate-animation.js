@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { graphql } from '@octokit/graphql';
+const fs = request('fs');
+const { graphql } = require('@octokit/graphql');
 
 const graphqlWithAuth = graphql.defaults({
   headers: {

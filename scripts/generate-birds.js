@@ -1,144 +1,128 @@
 const fs = require('fs');
-const { Octokit } = require('@octokit/rest');
+const { graphql } = require('@octokit/graphql');
 
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
+const graphqlWithAuth = graphql.defaults({
+  headers: {
+    authorization: `token ${process.env.GITHUB_TOKEN}`,
+  },
 });
 
-class Bird {
+class Star {
   constructor(x, y, contributionCount) {
     this.x = x;
     this.y = y;
-    this.size = Math.min(10 + contributionCount / 2, 30); // 貢献度に応じて大きさを変える
-    this.velocity = {
-      x: Math.random() * 4 - 2,
-      y: Math.random() * 4 - 2
-    };
+    this.size = Math.min(3 + contributionCount / 3, 8);
+    this.brightness = Math.min(0.3 + contributionCount / 100, 1);
+    this.connections = [];
+    this.angle = Math.random() * Math.PI * 2;
+    this.speed = 0.2 + Math.random() * 0.3;
+    this.orbitRadius = Math.random() * 20;
+    this.baseX = x;
+    this.baseY = y;
+    this.phase = Math.random() * Math.PI * 2;
   }
 
-  toSVGPath() {
-    const angle = Math.atan2(this.velocity.y, this.velocity.x);
+  update(time) {
+    // 星が軌道を描くような動き
+    this.x = this.baseX + Math.cos(this.angle + time * this.speed) * this.orbitRadius;
+    this.y = this.baseY + Math.sin(this.angle + time * this.speed) * this.orbitRadius;
+    
+    // 明るさのパルス効果
+    this.currentBrightness = this.brightness * (0.7 + 0.3 * Math.sin(time * 2 + this.phase));
+  }
+
+  toSVG() {
     return `
-      <g transform="translate(${this.x} ${this.y}) rotate(${angle * 180 / Math.PI})">
-        <path 
-          d="M ${-this.size},0 
-             C ${-this.size * 0.8},${-this.size * 0.3} ${-this.size * 0.3},${-this.size * 0.5} 0,0 
-             C ${-this.size * 0.3},${this.size * 0.5} ${-this.size * 0.8},${this.size * 0.3} ${-this.size},0 
-             Z"
-          fill="#40916c"
-          opacity="${Math.min(0.3 + this.size / 30, 1)}"
-        />
+      <g class="star-group">
+        <circle 
+          cx="${this.x}" 
+          cy="${this.y}" 
+          r="${this.size}"
+          fill="#4B9EF9"
+          opacity="${this.currentBrightness}"
+        >
+          <animate
+            attributeName="r"
+            values="${this.size};${this.size * 1.2};${this.size}"
+            dur="${2 + Math.random()}s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <circle 
+          cx="${this.x}" 
+          cy="${this.y}" 
+          r="${this.size * 1.5}"
+          fill="none"
+          stroke="#4B9EF9"
+          stroke-width="0.5"
+          opacity="${this.currentBrightness * 0.3}"
+        >
+          <animate
+            attributeName="r"
+            values="${this.size * 1.5};${this.size * 2};${this.size * 1.5}"
+            dur="${3 + Math.random()}s"
+            repeatCount="indefinite"
+          />
+        </circle>
       </g>
     `;
   }
-
-  update(birds, width, height) {
-    // Boidsのルール適用
-    const alignment = { x: 0, y: 0 };
-    const cohesion = { x: 0, y: 0 };
-    const separation = { x: 0, y: 0 };
-    let neighborCount = 0;
-
-    birds.forEach(other => {
-      if (other === this) return;
-      const dx = other.x - this.x;
-      const dy = other.y - this.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance < 100) {
-        alignment.x += other.velocity.x;
-        alignment.y += other.velocity.y;
-        cohesion.x += other.x;
-        cohesion.y += other.y;
-        if (distance < 50) {
-          separation.x -= dx / distance;
-          separation.y -= dy / distance;
-        }
-        neighborCount++;
-      }
-    });
-
-    if (neighborCount > 0) {
-      this.velocity.x += (alignment.x / neighborCount - this.velocity.x) * 0.05;
-      this.velocity.y += (alignment.y / neighborCount - this.velocity.y) * 0.05;
-      this.velocity.x += (cohesion.x / neighborCount - this.x) * 0.01;
-      this.velocity.y += (cohesion.y / neighborCount - this.y) * 0.01;
-    }
-
-    this.velocity.x += separation.x * 0.05;
-    this.velocity.y += separation.y * 0.05;
-
-    // 速度制限
-    const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-    if (speed > 4) {
-      this.velocity.x = (this.velocity.x / speed) * 4;
-      this.velocity.y = (this.velocity.y / speed) * 4;
-    }
-
-    // 位置更新
-    this.x += this.velocity.x;
-    this.y += this.velocity.y;
-
-    // 画面端での折り返し
-    if (this.x < 0) this.x = width;
-    if (this.x > width) this.x = 0;
-    if (this.y < 0) this.y = height;
-    if (this.y > height) this.y = 0;
-  }
 }
 
-async function generateAnimation() {
-  const username = process.env.GITHUB_REPOSITORY.split('/')[0];
-  const contributions = await getContributions(username);
-  const width = 800;
-  const height = 400;
-  const birds = [];
+class Constellation {
+  constructor(stars) {
+    this.stars = stars;
+    this.connectStars();
+  }
 
-  // コントリビューション数に基づいて鳥を生成
-  contributions.forEach(count => {
-    if (count > 0) {
-      birds.push(new Bird(
-        Math.random() * width,
-        Math.random() * height,
-        count
-      ));
+  connectStars() {
+    for (let i = 0; i < this.stars.length; i++) {
+      for (let j = i + 1; j < this.stars.length; j++) {
+        const dist = Math.hypot(
+          this.stars[i].x - this.stars[j].x,
+          this.stars[i].y - this.stars[j].y
+        );
+        if (dist < 100) {
+          this.stars[i].connections.push(j);
+        }
+      }
     }
-  });
+  }
 
-  // アニメーションフレームの生成
-  const frames = 120;
-  const animations = birds.map((bird, index) => {
-    const keyframes = [];
-    for (let i = 0; i < frames; i++) {
-      bird.update(birds, width, height);
-      keyframes.push(`${(i / frames) * 100}% { transform: translate(${bird.x}px, ${bird.y}px) rotate(${Math.atan2(bird.velocity.y, bird.velocity.x) * 180 / Math.PI}deg); }`);
-    }
+  toSVG(time) {
+    this.stars.forEach(star => star.update(time));
+
+    const connections = this.stars.flatMap((star, i) =>
+      star.connections.map(j => {
+        const other = this.stars[j];
+        const dist = Math.hypot(star.x - other.x, star.y - other.y);
+        const opacity = Math.max(0, 1 - dist / 100) * 0.3;
+        return `
+          <line 
+            x1="${star.x}" 
+            y1="${star.y}" 
+            x2="${other.x}" 
+            y2="${other.y}"
+            stroke="#4B9EF9"
+            stroke-width="0.5"
+            opacity="${opacity}"
+          >
+            <animate
+              attributeName="opacity"
+              values="${opacity};${opacity * 0.5};${opacity}"
+              dur="3s"
+              repeatCount="indefinite"
+            />
+          </line>
+        `;
+      })
+    );
+
     return `
-      #bird-${index} {
-        animation: bird-${index} 20s linear infinite;
-      }
-      @keyframes bird-${index} {
-        ${keyframes.join('\n')}
-      }
+      <g class="connections">${connections.join('')}</g>
+      <g class="stars">${this.stars.map(star => star.toSVG()).join('')}</g>
     `;
-  });
-
-  // SVGの生成
-  const svg = `
-    <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <style>
-        ${animations.join('\n')}
-      </style>
-      <rect width="100%" height="100%" fill="#1a1b26"/>
-      ${birds.map((bird, index) => `
-        <g id="bird-${index}">
-          ${bird.toSVGPath()}
-        </g>
-      `).join('\n')}
-    </svg>
-  `;
-
-  fs.writeFileSync('./dist/github-birds.svg', svg);
+  }
 }
 
 async function getContributions(username) {
@@ -151,6 +135,7 @@ async function getContributions(username) {
             weeks {
               contributionDays {
                 contributionCount
+                date
               }
             }
           }
@@ -159,9 +144,58 @@ async function getContributions(username) {
     }
   `;
 
-  const response = await octokit.graphql(query, { username });
-  const weeks = response.user.contributionsCollection.contributionCalendar.weeks;
-  return weeks.flatMap(week => week.contributionDays.map(day => day.contributionCount));
+  const response = await graphqlWithAuth(query, { username });
+  return response.user.contributionsCollection.contributionCalendar;
+}
+
+async function generateAnimation() {
+  const username = process.env.GITHUB_REPOSITORY.split('/')[0];
+  const contributionData = await getContributions(username);
+  const width = 800;
+  const height = 400;
+  
+  // コントリビューションデータから星を生成
+  const stars = contributionData.weeks.flatMap((week, weekIndex) =>
+    week.contributionDays.filter(day => day.contributionCount > 0)
+      .map((day, dayIndex) => new Star(
+        50 + (weekIndex / 52) * (width - 100),
+        50 + (dayIndex / 7) * (height - 100),
+        day.contributionCount
+      ))
+  );
+
+  const constellation = new Constellation(stars);
+
+  // アニメーションのキーフレームを生成
+  const frames = 60;
+  const animations = Array.from({ length: frames }, (_, i) => {
+    const time = (i / frames) * Math.PI * 2;
+    return constellation.toSVG(time);
+  });
+
+  const svg = `
+    <svg 
+      viewBox="0 0 ${width} ${height}" 
+      xmlns="http://www.w3.org/2000/svg"
+      style="background: #0D1117"
+    >
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      <rect width="100%" height="100%" fill="#0D1117"/>
+      <g filter="url(#glow)">
+        ${animations[0]}
+      </g>
+    </svg>
+  `;
+
+  fs.writeFileSync('./dist/github-contribution-animation.svg', svg);
 }
 
 generateAnimation().catch(console.error);

@@ -1,23 +1,26 @@
 const fs = require('fs');
 const { graphql } = require('@octokit/graphql');
 
+// GitHub GraphQL APIの認証設定
 const graphqlWithAuth = graphql.defaults({
   headers: {
     authorization: `token ${process.env.GITHUB_TOKEN}`,
   },
 });
 
+// Rippleクラスの定義
 class Ripple {
   constructor(x, y, contributionCount) {
     this.x = x;
     this.y = y;
     this.contributionCount = contributionCount;
     this.maxRadius = 20 + contributionCount * 3; // 波紋の最大半径
-    this.opacity = Math.min(0.3 + contributionCount / 100, 1);
+    this.opacity = Math.min(0.3 + contributionCount / 100, 1); // 波紋の透明度
     this.duration = 2 + contributionCount / 10; // アニメーション時間
     this.fadeDuration = 5; // 波紋の残留効果
   }
 
+  // RippleインスタンスをSVG要素として表現するメソッド
   toSVG() {
     return `
       <circle
@@ -49,6 +52,7 @@ class Ripple {
   }
 }
 
+// GitHubの貢献度データを取得する関数
 async function getContributions(username) {
   const query = `
     query($username: String!) {
@@ -68,10 +72,12 @@ async function getContributions(username) {
     }
   `;
 
+  // GraphQLクエリを実行してデータを取得
   const response = await graphqlWithAuth(query, { username });
   return response.user.contributionsCollection.contributionCalendar;
 }
 
+// ランダムな位置を生成する関数
 function getRandomPosition(centerX, centerY, radius) {
   const angle = Math.random() * Math.PI * 2;
   const distance = Math.random() * radius;
@@ -81,15 +87,17 @@ function getRandomPosition(centerX, centerY, radius) {
   };
 }
 
+// アニメーションを生成する関数
 async function generateAnimation() {
-  const username = process.env.GITHUB_REPOSITORY.split('/')[0];
-  const contributionData = await getContributions(username);
+  const username = process.env.GITHUB_REPOSITORY.split('/')[0]; // ユーザー名を取得
+  const contributionData = await getContributions(username); // 貢献度データを取得
   const width = 800;
   const height = 400;
   const centerX = width / 2;
   const centerY = height / 2;
   const rippleRadius = Math.min(width, height) / 4; // 波紋が発生するエリアの半径
 
+  // 貢献度データに基づいてRippleインスタンスを生成
   const ripples = contributionData.weeks.flatMap((week) =>
     week.contributionDays.filter(day => day.contributionCount > 0)
       .map((day) => {
@@ -98,6 +106,7 @@ async function generateAnimation() {
       })
   );
 
+  // RippleインスタンスをSVG要素に変換
   const rippleSVGs = ripples.map(ripple => ripple.toSVG()).join('');
 
   const resetDuration = ripples.length * 3; // 全波紋が描写される時間
@@ -129,7 +138,9 @@ async function generateAnimation() {
     </svg>
   `;
 
+  // SVGファイルとして保存
   fs.writeFileSync('./dist/github-contribution-animation.svg', svg);
 }
 
+// アニメーション生成関数を実行し、エラーがあればログに出力
 generateAnimation().catch(console.error);

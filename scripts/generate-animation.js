@@ -16,7 +16,7 @@ class Ripple {
     this.contributionCount = contributionCount;
     this.maxRadius = 20 + contributionCount * 3; // 波紋の最大半径
     this.opacity = Math.min(0.3 + contributionCount / 100, 1); // 波紋の透明度
-    this.duration = 2 + contributionCount / 10; // アニメーション時間
+    this.duration = 2 + contributionCount / 5; // アニメーション時間
     this.fadeDuration = 5; // 波紋の残留効果
   }
 

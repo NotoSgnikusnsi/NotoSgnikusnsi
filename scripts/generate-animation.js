@@ -129,7 +129,7 @@ async function generateAnimation() {
     </svg>
   `;
 
-  fs.writeFileSync('./dist/github-contribution-ripples.svg', svg);
+  fs.writeFileSync('./dist/github-contribution-animation.svg', svg);
 }
 
 generateAnimation().catch(console.error);

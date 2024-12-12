@@ -7,85 +7,43 @@ const graphqlWithAuth = graphql.defaults({
   },
 });
 
-class Bird {
+class Ripple {
   constructor(x, y, contributionCount) {
     this.x = x;
     this.y = y;
-    this.size = Math.min(10 + contributionCount / 2, 30);
-    this.velocity = {
-      x: Math.random() * 4 - 2,
-      y: Math.random() * 4 - 2
-    };
+    this.contributionCount = contributionCount;
+    this.maxRadius = 20 + contributionCount * 2; // 波紋の最大半径
+    this.opacity = Math.min(0.3 + contributionCount / 100, 1);
+    this.duration = 2 + contributionCount / 10; // アニメーション時間
   }
 
-  toSVGPath() {
-    const angle = Math.atan2(this.velocity.y, this.velocity.x);
+  toSVG() {
     return `
-      <g transform="translate(${this.x} ${this.y}) rotate(${angle * 180 / Math.PI})">
-        <path 
-          d="M ${-this.size},0 
-             C ${-this.size * 0.8},${-this.size * 0.3} ${-this.size * 0.3},${-this.size * 0.5} 0,0 
-             C ${-this.size * 0.3},${this.size * 0.5} ${-this.size * 0.8},${this.size * 0.3} ${-this.size},0 
-             Z"
-          fill="#40916c"
-          opacity="${Math.min(0.3 + this.size / 30, 1)}"
+      <circle
+        cx="${this.x}"
+        cy="${this.y}"
+        r="0"
+        fill="none"
+        stroke="#4B9EF9"
+        stroke-width="2"
+        opacity="${this.opacity}"
+      >
+        <animate
+          attributeName="r"
+          from="0"
+          to="${this.maxRadius}"
+          dur="${this.duration}s"
+          repeatCount="indefinite"
         />
-      </g>
+        <animate
+          attributeName="opacity"
+          from="${this.opacity}"
+          to="0"
+          dur="${this.duration}s"
+          repeatCount="indefinite"
+        />
+      </circle>
     `;
-  }
-
-  update(birds, width, height) {
-    // Boidsのルール適用
-    const alignment = { x: 0, y: 0 };
-    const cohesion = { x: 0, y: 0 };
-    const separation = { x: 0, y: 0 };
-    let neighborCount = 0;
-
-    birds.forEach(other => {
-      if (other === this) return;
-      const dx = other.x - this.x;
-      const dy = other.y - this.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance < 100) {
-        alignment.x += other.velocity.x;
-        alignment.y += other.velocity.y;
-        cohesion.x += other.x;
-        cohesion.y += other.y;
-        if (distance < 50) {
-          separation.x -= dx / distance;
-          separation.y -= dy / distance;
-        }
-        neighborCount++;
-      }
-    });
-
-    if (neighborCount > 0) {
-      this.velocity.x += (alignment.x / neighborCount - this.velocity.x) * 0.05;
-      this.velocity.y += (alignment.y / neighborCount - this.velocity.y) * 0.05;
-      this.velocity.x += (cohesion.x / neighborCount - this.x) * 0.01;
-      this.velocity.y += (cohesion.y / neighborCount - this.y) * 0.01;
-    }
-
-    this.velocity.x += separation.x * 0.05;
-    this.velocity.y += separation.y * 0.05;
-
-    // 速度制限
-    const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-    if (speed > 4) {
-      this.velocity.x = (this.velocity.x / speed) * 4;
-      this.velocity.y = (this.velocity.y / speed) * 4;
-    }
-
-    // 位置更新
-    this.x += this.velocity.x;
-    this.y += this.velocity.y;
-
-    // 画面端での折り返し
-    if (this.x < 0) this.x = width;
-    if (this.x > width) this.x = 0;
-    if (this.y < 0) this.y = height;
-    if (this.y > height) this.y = 0;
   }
 }
 
@@ -99,6 +57,7 @@ async function getContributions(username) {
             weeks {
               contributionDays {
                 contributionCount
+                date
               }
             }
           }
@@ -108,55 +67,34 @@ async function getContributions(username) {
   `;
 
   const response = await graphqlWithAuth(query, { username });
-  const weeks = response.user.contributionsCollection.contributionCalendar.weeks;
-  return weeks.flatMap(week => week.contributionDays.map(day => day.contributionCount));
+  return response.user.contributionsCollection.contributionCalendar;
 }
 
 async function generateAnimation() {
   const username = process.env.GITHUB_REPOSITORY.split('/')[0];
-  const contributions = await getContributions(username);
+  const contributionData = await getContributions(username);
   const width = 800;
   const height = 400;
-  const birds = [];
 
-  contributions.forEach(count => {
-    if (count > 0) {
-      birds.push(new Bird(
-        Math.random() * width,
-        Math.random() * height,
-        count
-      ));
-    }
-  });
-
-  const frames = 120;
-  const animations = birds.map((bird, index) => {
-    const keyframes = [];
-    for (let i = 0; i < frames; i++) {
-      bird.update(birds, width, height);
-      keyframes.push(`${(i / frames) * 100}% { transform: translate(${bird.x}px, ${bird.y}px) rotate(${Math.atan2(bird.velocity.y, bird.velocity.x) * 180 / Math.PI}deg); }`);
-    }
-    return `
-      #bird-${index} {
-        animation: bird-${index} 20s linear infinite;
-      }
-      @keyframes bird-${index} {
-        ${keyframes.join('\n')}
-      }
-    `;
-  });
+  const ripples = contributionData.weeks.flatMap((week, weekIndex) =>
+    week.contributionDays.filter(day => day.contributionCount > 0)
+      .map((day, dayIndex) => new Ripple(
+        50 + (weekIndex / 52) * (width - 100),
+        50 + (dayIndex / 7) * (height - 100),
+        day.contributionCount
+      ))
+  );
 
   const svg = `
-    <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <style>
-        ${animations.join('\n')}
-      </style>
-      <rect width="100%" height="100%" fill="#1a1b26"/>
-      ${birds.map((bird, index) => `
-        <g id="bird-${index}">
-          ${bird.toSVGPath()}
-        </g>
-      `).join('\n')}
+    <svg 
+      viewBox="0 0 ${width} ${height}" 
+      xmlns="http://www.w3.org/2000/svg"
+      style="background: #0D1117"
+    >
+      <rect width="100%" height="100%" fill="#1A1B26"/>
+      <g>
+        ${ripples.map(ripple => ripple.toSVG()).join('')}
+      </g>
     </svg>
   `;
 

@@ -97,7 +97,7 @@ async function generateAnimation() {
   const height = 400;
   const centerX = width / 2;
   const centerY = height / 2;
-  const rippleRadius = Math.min(width, height) / 4; // 波紋が発生するエリアの半径
+  const rippleRadius = Math.min(width, height) / 2; // 波紋が発生するエリアの半径
 
   // 貢献度データに基づいてRippleインスタンスを生成
   let delay = 0;

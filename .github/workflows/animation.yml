@@ -1,4 +1,4 @@
-name: Generate GitHub Birds Animation
+name: Generate GitHub Animation
 on:
   schedule:
     - cron: "0 */24 * * *" # 毎日実行

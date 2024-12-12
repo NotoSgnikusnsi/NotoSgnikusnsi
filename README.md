@@ -1,6 +1,7 @@
 ### I'm an ordinary person. 👍
 ![trophy](http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=notosgnikusnsi&theme=github_dark)
 
+### Animation of Contributions
 ![GitHub Contribution Animation](https://raw.githubusercontent.com/notosgnikusnsi/notosgnikusnsi/gh-pages/github-contribution-animation.svg)
 
 <!--

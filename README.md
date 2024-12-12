@@ -1,7 +1,7 @@
 ### I'm an ordinary person. 👍
 ![trophy](http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=notosgnikusnsi&theme=github_dark)
 
-![GitHub Contribution Birds](https://raw.githubusercontent.com/notosgnikusnsi/notosgnikusnsi/gh-pages/github-contribution-trees.svg)
+![GitHub Contribution Animation](https://raw.githubusercontent.com/notosgnikusnsi/notosgnikusnsi/gh-pages/github-contribution-animation.svg)
 
 <!--
 **NotoSgnikusnsi/NotoSgnikusnsi** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.

@@ -89,7 +89,7 @@ async function generateAnimation() {
     </svg>
   `;
 
-  fs.writeFileSync('./dist/github-contribution-trees.svg', svg);
+  fs.writeFileSync('./dist/github-contribution-animation.svg', svg);
 }
 
 generateAnimation().catch(console.error);

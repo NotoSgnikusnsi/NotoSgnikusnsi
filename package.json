@@ -1,9 +1,9 @@
 {
-  "name": "github-birds-animation",
+  "name": "github-contribution-animation",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "generate": "node scripts/generate-birds.js"
+    "generate": "node scripts/generate-animation.js"
   },
   "dependencies": {
     "@octokit/rest": "^19.0.7",

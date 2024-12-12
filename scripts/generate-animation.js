@@ -1,4 +1,4 @@
-const fs = request('fs');
+const fs = require('fs');
 const { graphql } = require('@octokit/graphql');
 
 const graphqlWithAuth = graphql.defaults({

@@ -37,7 +37,6 @@ class Ripple {
           from="0"
           to="${this.maxRadius}"
           dur="${this.duration}s"
-          fill="freeze"
           repeatCount="indefinite"
         />
         <animate
@@ -46,7 +45,6 @@ class Ripple {
           to="${this.opacity * 0.2}"
           begin="${this.duration}s"
           dur="${this.fadeDuration}s"
-          fill="freeze"
           repeatCount="indefinite"
         />
       </circle>
@@ -133,7 +131,7 @@ async function generateAnimation() {
             to="1" 
             begin="${resetDuration}s" 
             dur="2s" 
-            fill="freeze"
+            repeatCount="indefinite"
           />
         </rect>
       </g>

@@ -38,7 +38,6 @@ class Ripple {
           to="${this.maxRadius}"
           dur="${this.duration}s"
           fill="freeze"
-          repeatCount="indefinite"
         />
         <animate
           attributeName="opacity"
@@ -47,7 +46,6 @@ class Ripple {
           begin="${this.duration}s"
           dur="${this.fadeDuration}s"
           fill="freeze"
-          repeatCount="indefinite"
         />
       </circle>
     `;

@@ -107,7 +107,7 @@ async function generateAnimation() {
       .map((day) => {
         const { x, y } = getRandomPosition(width, height);
         delay += Math.random() * 1;
-        const ripple = new Ripple(x, y, day.contributionCount, delay, duration);
+        const ripple = new Ripple(x, y, day.contributionCount, duration, delay);
         return ripple;
       })
   );

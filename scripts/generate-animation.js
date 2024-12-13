@@ -106,8 +106,8 @@ async function generateAnimation() {
     week.contributionDays.filter(day => day.contributionCount > 0)
       .map((day) => {
         const { x, y } = getRandomPosition(width, height);
-        const ripple = new Ripple(x, y, day.contributionCount, delay, duration);
         delay += Math.random() * 1;
+        const ripple = new Ripple(x, y, day.contributionCount, delay, duration);
         return ripple;
       })
   );

@@ -37,7 +37,7 @@ class Ripple {
       >
         <animate
           attributeName="r"
-          begin="${this.delay}"
+          begin="${this.delay}s"
           from="0"
           to="${this.size}"
           dur="${this.duration}s"
@@ -49,7 +49,7 @@ class Ripple {
         />
         <animate
           attributeName="opacity"
-          begin="${this.delay}"
+          begin="${this.delay}s"
           from="0.8"
           to="0.2"
           dur="${this.duration}s"
@@ -115,7 +115,6 @@ async function generateAnimation() {
   // RippleインスタンスをSVG要素に変換
   const rippleSVGs = ripples.map(ripple => ripple.toSVG()).join('');
 
-  const resetDuration = ripples.length * 0.5 + 5; // 全波紋が描写される時間 + 余裕時間
   const svg = `
     <svg 
       viewBox="0 0 ${width} ${height}" 

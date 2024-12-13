@@ -8,52 +8,57 @@ const graphqlWithAuth = graphql.defaults({
   },
 });
 
-// Rippleクラスの定義
+// 波紋のクラス
 class Ripple {
-  constructor(x, y, contributionCount, delay) {
+  constructor(x, y, contributionCount, duration, delay) {
     this.x = x;
     this.y = y;
-    this.contributionCount = contributionCount;
-    this.maxRadius = 20 + contributionCount * 3; // 波紋の最大半径
-    this.opacity = Math.min(0.3 + contributionCount / 100, 1); // 波紋の透明度
-    this.duration = 4 + contributionCount / 5; // アニメーション時間
-    this.fadeDuration = 5; // 波紋の残留効果
-    this.delay = delay; // アニメーション開始の遅延時間
+    this.size = 20 * contributionCount * 2;
+    this.duration = duration;
+    this.delay = delay;
+
+    if(Math.floor(Math.random() * 2) == 0) {
+        this.fillColor = "none";
+    } else {
+        this.fillColor = "#4B9EF9"
+    }
   }
 
-  // RippleインスタンスをSVG要素として表現するメソッド
   toSVG() {
     return `
       <circle
         cx="${this.x}"
         cy="${this.y}"
         r="0"
-        fill="none"
+        fill="${this.fillColor}"
         stroke="#4B9EF9"
         stroke-width="1"
-        opacity="${this.opacity}"
+        opacity="0.8"
       >
         <animate
           attributeName="r"
+          begin="${this.delay}"
           from="0"
-          to="${this.maxRadius}"
+          to="${this.size}"
           dur="${this.duration}s"
-          begin="${this.delay}s"
-          repeatCount="indefinite"
+          fill="freeze"
+          values="0; ${this.size}"
+          keyTimes="0; 1" 
+          keySplines="0 0.8 0.5 1; "
+          calcMode="spline"
         />
         <animate
           attributeName="opacity"
-          from="${this.opacity}"
-          to="${this.opacity * 0.2}"
-          begin="${this.delay}s"
-          dur="${this.fadeDuration}s"
-          repeatCount="indefinite"
+          begin="${this.delay}"
+          from="0.8"
+          to="0.2"
+          dur="${this.duration}s"
+          fill="freeze"
         />
       </circle>
     `;
   }
 }
-
 // GitHubの貢献度データを取得する関数
 async function getContributions(username) {
   const query = `
@@ -80,12 +85,10 @@ async function getContributions(username) {
 }
 
 // ランダムな位置を生成する関数
-function getRandomPosition(centerX, centerY, radius) {
-  const angle = Math.random() * Math.PI * 2;
-  const distance = Math.random() * radius;
+function getRandomPosition(width, height) {
   return {
-    x: centerX + Math.cos(angle) * distance,
-    y: centerY + Math.sin(angle) * distance,
+    x: Math.random() * width,
+    y: Math.random() * height
   };
 }
 
@@ -95,18 +98,16 @@ async function generateAnimation() {
   const contributionData = await getContributions(username); // 貢献度データを取得
   const width = 800;
   const height = 400;
-  const centerX = width / 2;
-  const centerY = height / 2;
-  const rippleRadius = Math.min(width, height) / 2; // 波紋が発生するエリアの半径
+  const duration = 2 // 波紋が広がりきるまでの時間
+  let delay = 0;
 
   // 貢献度データに基づいてRippleインスタンスを生成
-  let delay = 0;
   const ripples = contributionData.weeks.flatMap((week) =>
     week.contributionDays.filter(day => day.contributionCount > 0)
       .map((day) => {
-        const { x, y } = getRandomPosition(centerX, centerY, rippleRadius);
-        const ripple = new Ripple(x, y, day.contributionCount, delay);
-        delay += 0.5; // 各波紋の表示を0.5秒ずつ遅らせる
+        const { x, y } = getRandomPosition(width, height);
+        const ripple = new Ripple(x, y, day.contributionCount, delay, duration);
+        delay += Math.random() * 1;
         return ripple;
       })
   );

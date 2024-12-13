@@ -13,7 +13,7 @@ class Ripple {
   constructor(x, y, contributionCount, duration, delay) {
     this.x = x;
     this.y = y;
-    this.size = 20 * contributionCount * 2;
+    this.size = 20 + contributionCount * 3;
     this.duration = duration;
     this.delay = delay;
 
@@ -123,24 +123,7 @@ async function generateAnimation() {
       style="background: #0D1117"
     >
       <rect width="100%" height="100%" fill="#0D1117"/>
-      <g>
-        ${rippleSVGs}
-        <rect 
-          width="100%" 
-          height="100%" 
-          fill="#0D1117" 
-          opacity="0"
-        >
-          <animate 
-            attributeName="opacity" 
-            from="0" 
-            to="1" 
-            begin="${resetDuration}s" 
-            dur="2s"
-            repeatCount="indefinite"
-          />
-        </rect>
-      </g>
+      <g>${rippleSVGs}</g>
     </svg>
   `;
 

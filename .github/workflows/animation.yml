@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: npm install
           
-      - name: Create Birds Animation
+      - name: Create Animation
         run: |
           mkdir -p dist
           npm run generate

@@ -16,16 +16,21 @@ class Ripple {
     this.size = 20 + contributionCount * 3;
     this.duration = duration;
     this.delay = delay;
+    this.fillColor = "none";
+    this.isMultiCircle = false;
 
-    if(Math.floor(Math.random() * 2) == 0) {
-        this.fillColor = "none";
-    } else {
-        this.fillColor = "#4B9EF9"
+    if(Math.floor(Math.random() * 2) > 0) {
+        this.fillColor = "#4B9EF9";
+    }
+
+    if (this.size >= 80) {
+      this.isMultiCircle = true;
     }
   }
 
   toSVG() {
-    return `
+    if(this.isMultiCircle){
+      return `
       <circle
         cx="${this.x}"
         cy="${this.y}"
@@ -56,7 +61,101 @@ class Ripple {
           fill="freeze"
         />
       </circle>
-    `;
+      <circle
+        cx="${this.x}"
+        cy="${this.y}"
+        r="0"
+        fill="${this.fillColor}"
+        stroke="#4B9EF9"
+        stroke-width="1"
+        opacity="0.8"
+      >
+        <animate
+          attributeName="r"
+          begin="${this.delay + 0.3}s"
+          from="0"
+          to="${this.size}"
+          dur="${this.duration}s"
+          fill="freeze"
+          values="0; ${this.size}"
+          keyTimes="0; 1" 
+          keySplines="0 0.8 0.5 1; "
+          calcMode="spline"
+        />
+        <animate
+          attributeName="opacity"
+          begin="${this.delay + 0.3}s"
+          from="0.8"
+          to="0.2"
+          dur="${this.duration}s"
+          fill="freeze"
+        />
+      </circle>
+      <circle
+        cx="${this.x}"
+        cy="${this.y}"
+        r="0"
+        fill="${this.fillColor}"
+        stroke="#4B9EF9"
+        stroke-width="1"
+        opacity="0.8"
+      >
+        <animate
+          attributeName="r"
+          begin="${this.delay + 0.6}s"
+          from="0"
+          to="${this.size}"
+          dur="${this.duration}s"
+          fill="freeze"
+          values="0; ${this.size}"
+          keyTimes="0; 1" 
+          keySplines="0 0.8 0.5 1; "
+          calcMode="spline"
+        />
+        <animate
+          attributeName="opacity"
+          begin="${this.delay + 0.6}s"
+          from="0.8"
+          to="0.2"
+          dur="${this.duration}s"
+          fill="freeze"
+        />
+      </circle>
+    `
+    } else {
+      return `
+      <circle
+        cx="${this.x}"
+        cy="${this.y}"
+        r="0"
+        fill="${this.fillColor}"
+        stroke="#4B9EF9"
+        stroke-width="1"
+        opacity="0.8"
+      >
+        <animate
+          attributeName="r"
+          begin="${this.delay}s"
+          from="0"
+          to="${this.size}"
+          dur="${this.duration}s"
+          fill="freeze"
+          values="0; ${this.size}"
+          keyTimes="0; 1" 
+          keySplines="0 0.8 0.5 1; "
+          calcMode="spline"
+        />
+        <animate
+          attributeName="opacity"
+          begin="${this.delay}s"
+          from="0.8"
+          to="0.2"
+          dur="${this.duration}s"
+          fill="freeze"
+        />
+      </circle>
+    `
+    };
   }
 }
 // GitHubの貢献度データを取得する関数
@@ -106,7 +205,7 @@ async function generateAnimation() {
     week.contributionDays.filter(day => day.contributionCount > 0)
       .map((day) => {
         const { x, y } = getRandomPosition(width, height);
-        delay += Math.random() * 1;
+        delay += Math.random() * 0.3;
         const ripple = new Ripple(x, y, day.contributionCount, duration, delay);
         return ripple;
       })

@@ -23,7 +23,7 @@ class Ripple {
         this.fillColor = "#4B9EF9";
     }
 
-    if (this.size >= 80) {
+    if (this.size >= 80 && this.fillColor === "none") {
       this.isMultiCircle = true;
     }
   }

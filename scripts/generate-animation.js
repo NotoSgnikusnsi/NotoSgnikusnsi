@@ -19,8 +19,8 @@ class Ripple {
     this.fillColor = "none";
     this.isMultiCircle = false;
 
-    if(Math.floor(Math.random() * 2) > 0) {
-        this.fillColor = "#4B9EF9";
+    if (Math.floor(Math.random() * 2) > 0) {
+      this.fillColor = "#4B9EF9";
     }
 
     if (this.size >= 80 && this.fillColor === "none") {
@@ -29,7 +29,7 @@ class Ripple {
   }
 
   toSVG() {
-    if(this.isMultiCircle){
+    if (this.isMultiCircle) {
       return `
       <circle
         cx="${this.x}"
@@ -158,12 +158,13 @@ class Ripple {
     };
   }
 }
+
 // GitHubの貢献度データを取得する関数
 async function getContributions(username) {
   const query = `
-    query($username: String!) {
+    query($username: String!, $from: DateTime!, $to: DateTime!) {
       user(login: $username) {
-        contributionsCollection {
+        contributionsCollection(from: $from, to: $to) {
           contributionCalendar {
             totalContributions
             weeks {
@@ -178,8 +179,13 @@ async function getContributions(username) {
     }
   `;
 
+  const now = new Date();
+  const year = now.getFullYear();
+  const from = new Date(year, 0, 1).toISOString(); // January 1st
+  const to = new Date(year, 11, 31, 23, 59, 59).toISOString(); // December 31st
+
   // GraphQLクエリを実行してデータを取得
-  const response = await graphqlWithAuth(query, { username });
+  const response = await graphqlWithAuth(query, { username, from, to });
   return response.user.contributionsCollection.contributionCalendar;
 }
 

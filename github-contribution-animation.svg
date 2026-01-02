@@ -5,6 +5,37 @@
       style="background: #0D1117"
     >
       <rect width="100%" height="100%" fill="#0D1117"/>
-      <g></g>
+      <g>
+      <circle
+        cx="379.1181455740462"
+        cy="385.05523764891495"
+        r="0"
+        fill="#4B9EF9"
+        stroke="#4B9EF9"
+        stroke-width="1"
+        opacity="0.8"
+      >
+        <animate
+          attributeName="r"
+          begin="0.056543746519818944s"
+          from="0"
+          to="23"
+          dur="2s"
+          fill="freeze"
+          values="0; 23"
+          keyTimes="0; 1" 
+          keySplines="0 0.8 0.5 1; "
+          calcMode="spline"
+        />
+        <animate
+          attributeName="opacity"
+          begin="0.056543746519818944s"
+          from="0.8"
+          to="0.2"
+          dur="2s"
+          fill="freeze"
+        />
+      </circle>
+    </g>
     </svg>
   

@@ -7,8 +7,8 @@
       <rect width="100%" height="100%" fill="#0D1117"/>
       <g>
       <circle
-        cx="379.1181455740462"
-        cy="385.05523764891495"
+        cx="49.38579523351461"
+        cy="350.08465364866197"
         r="0"
         fill="#4B9EF9"
         stroke="#4B9EF9"
@@ -17,7 +17,7 @@
       >
         <animate
           attributeName="r"
-          begin="0.056543746519818944s"
+          begin="0.041340665779187755s"
           from="0"
           to="23"
           dur="2s"
@@ -29,7 +29,38 @@
         />
         <animate
           attributeName="opacity"
-          begin="0.056543746519818944s"
+          begin="0.041340665779187755s"
+          from="0.8"
+          to="0.2"
+          dur="2s"
+          fill="freeze"
+        />
+      </circle>
+    
+      <circle
+        cx="136.64024690969558"
+        cy="156.81641451435536"
+        r="0"
+        fill="#4B9EF9"
+        stroke="#4B9EF9"
+        stroke-width="1"
+        opacity="0.8"
+      >
+        <animate
+          attributeName="r"
+          begin="0.3084031988681887s"
+          from="0"
+          to="23"
+          dur="2s"
+          fill="freeze"
+          values="0; 23"
+          keyTimes="0; 1" 
+          keySplines="0 0.8 0.5 1; "
+          calcMode="spline"
+        />
+        <animate
+          attributeName="opacity"
+          begin="0.3084031988681887s"
           from="0.8"
           to="0.2"
           dur="2s"

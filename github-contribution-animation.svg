@@ -7,8 +7,8 @@
       <rect width="100%" height="100%" fill="#0D1117"/>
       <g>
       <circle
-        cx="49.38579523351461"
-        cy="350.08465364866197"
+        cx="50.99089182662411"
+        cy="169.34226540725356"
         r="0"
         fill="#4B9EF9"
         stroke="#4B9EF9"
@@ -17,7 +17,7 @@
       >
         <animate
           attributeName="r"
-          begin="0.041340665779187755s"
+          begin="0.29497731433158847s"
           from="0"
           to="23"
           dur="2s"
@@ -29,7 +29,7 @@
         />
         <animate
           attributeName="opacity"
-          begin="0.041340665779187755s"
+          begin="0.29497731433158847s"
           from="0.8"
           to="0.2"
           dur="2s"
@@ -38,8 +38,8 @@
       </circle>
     
       <circle
-        cx="136.64024690969558"
-        cy="156.81641451435536"
+        cx="118.13385458463497"
+        cy="313.00368548440576"
         r="0"
         fill="#4B9EF9"
         stroke="#4B9EF9"
@@ -48,7 +48,7 @@
       >
         <animate
           attributeName="r"
-          begin="0.3084031988681887s"
+          begin="0.44588910185805114s"
           from="0"
           to="23"
           dur="2s"
@@ -60,7 +60,38 @@
         />
         <animate
           attributeName="opacity"
-          begin="0.3084031988681887s"
+          begin="0.44588910185805114s"
+          from="0.8"
+          to="0.2"
+          dur="2s"
+          fill="freeze"
+        />
+      </circle>
+    
+      <circle
+        cx="363.8099165807258"
+        cy="289.19345165619393"
+        r="0"
+        fill="#4B9EF9"
+        stroke="#4B9EF9"
+        stroke-width="1"
+        opacity="0.8"
+      >
+        <animate
+          attributeName="r"
+          begin="0.6589594040380244s"
+          from="0"
+          to="23"
+          dur="2s"
+          fill="freeze"
+          values="0; 23"
+          keyTimes="0; 1" 
+          keySplines="0 0.8 0.5 1; "
+          calcMode="spline"
+        />
+        <animate
+          attributeName="opacity"
+          begin="0.6589594040380244s"
           from="0.8"
           to="0.2"
           dur="2s"
